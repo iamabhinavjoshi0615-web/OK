@@ -1,39 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Stack, TextField, Button, Typography } from '@mui/material';
-
-import { EXERCISE_DB_URL, fetchData } from '../utils/fetchData';
+import React, { useState } from 'react';
+import { Box, Button, Stack, TextField, Typography } from '@mui/material';
+import allExercises, { bodyParts } from '../data/exercises';
 import HorizontalScrollbar from './HorizontalScrollbar';
 
 const SearchExercises = ({ setExercises, bodyPart, setBodyPart }) => {
   const [search, setSearch] = useState('');
-  const [bodyParts, setBodyParts] = useState([]);
 
-  useEffect(() => {
-    const fetchExercisesData = async () => {
-      // exercisedb.dev returns { success, data: [...] }
-      const result = await fetchData(`${EXERCISE_DB_URL}/muscles`);
-      const bodyPartsData = Array.isArray(result?.data) ? result.data.map((m) => m.name) : [];
-      setBodyParts(['all', ...bodyPartsData]);
-    };
-
-    fetchExercisesData();
-  }, []);
-
-  const handleSearch = async () => {
+  // Body parts are derived from local data — no API needed
+  const handleSearch = () => {
     if (search) {
-      const result = await fetchData(`${EXERCISE_DB_URL}/exercises?limit=500`);
-      const all = Array.isArray(result?.data) ? result.data : [];
-
-      const searchedExercises = all.filter(
-        (item) => item.name?.toLowerCase().includes(search)
-               || item.target?.toLowerCase().includes(search)
-               || item.equipment?.toLowerCase().includes(search)
-               || item.bodyPart?.toLowerCase().includes(search),
+      const results = allExercises.filter(
+        (item) => item.name.toLowerCase().includes(search)
+               || item.target.toLowerCase().includes(search)
+               || item.equipment.toLowerCase().includes(search)
+               || item.bodyPart.toLowerCase().includes(search),
       );
-
       window.scrollTo({ top: 1800, left: 100, behavior: 'smooth' });
       setSearch('');
-      setExercises(searchedExercises);
+      setExercises(results);
     }
   };
 
@@ -50,6 +34,7 @@ const SearchExercises = ({ setExercises, bodyPart, setBodyPart }) => {
           onChange={(e) => setSearch(e.target.value.toLowerCase())}
           placeholder="Search Exercises"
           type="text"
+          onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
         />
         <Button
           className="search-btn"
