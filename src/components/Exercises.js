@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Pagination from '@mui/material/Pagination';
 import { Box, Stack, Typography } from '@mui/material';
 
-import { exerciseOptions, fetchData } from '../utils/fetchData';
+import { EXERCISE_DB_URL, fetchData } from '../utils/fetchData';
 import ExerciseCard from './ExerciseCard';
 import Loader from './Loader';
 
@@ -13,15 +13,17 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
 
   useEffect(() => {
     const fetchExercisesData = async () => {
-      let exercisesData = null;
+      let result;
 
       if (bodyPart === 'all') {
-        exercisesData = await fetchData('https://exercisedb.p.rapidapi.com/exercises', exerciseOptions);
+        result = await fetchData(`${EXERCISE_DB_URL}/exercises?limit=500`);
       } else {
-        exercisesData = await fetchData(`https://exercisedb.p.rapidapi.com/exercises/bodyPart/${bodyPart}`, exerciseOptions);
+        result = await fetchData(`${EXERCISE_DB_URL}/exercises?muscle=${encodeURIComponent(bodyPart)}&limit=500`);
       }
 
-      if (!Array.isArray(exercisesData)) {
+      const exercisesData = Array.isArray(result?.data) ? result.data : null;
+
+      if (!exercisesData) {
         setApiError(true);
         setExercises([]);
         return;
@@ -34,14 +36,12 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
     fetchExercisesData();
   }, [bodyPart]);
 
-  // Pagination
   const indexOfLastExercise = currentPage * exercisesPerPage;
   const indexOfFirstExercise = indexOfLastExercise - exercisesPerPage;
-  const currentExercises = exercises.slice(indexOfFirstExercise, indexOfLastExercise);
+  const currentExercises = Array.isArray(exercises) ? exercises.slice(indexOfFirstExercise, indexOfLastExercise) : [];
 
   const paginate = (event, value) => {
     setCurrentPage(value);
-
     window.scrollTo({ top: 1800, behavior: 'smooth' });
   };
 
@@ -50,8 +50,8 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
       <Box id="exercises" sx={{ mt: { lg: '109px' } }} mt="50px" p="20px" textAlign="center">
         <Typography variant="h5" color="error" mb={2}>⚠️ Could not load exercises</Typography>
         <Typography color="text.secondary">
-          The exercise API is currently unavailable (rate limit or access error).<br />
-          Please check your RapidAPI key and plan, then try again.
+          The exercise data is currently unavailable.<br />
+          Please try again later.
         </Typography>
       </Box>
     );
@@ -85,4 +85,3 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
 };
 
 export default Exercises;
-

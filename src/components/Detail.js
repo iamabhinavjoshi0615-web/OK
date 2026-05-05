@@ -6,33 +6,33 @@ import TargetImage from '../assets/icons/target.png';
 import EquipmentImage from '../assets/icons/equipment.png';
 
 const Detail = ({ exerciseDetail }) => {
-  const { bodyPart, name, target, equipment } = exerciseDetail;
+  const { bodyPart, name, target, equipment, gifUrl, id } = exerciseDetail;
+
+  const gifSrc = gifUrl || `https://exercisedb.dev/api/v1/exercises/${id}/image`;
+  const fallback = 'https://via.placeholder.com/400x400?text=No+Image';
 
   const extraDetail = [
-    {
-      icon: BodyPartImage,
-      name: bodyPart,
-    },
-    {
-      icon: TargetImage,
-      name: target,
-    },
-    {
-      icon: EquipmentImage,
-      name: equipment,
-    },
+    { icon: BodyPartImage, name: bodyPart },
+    { icon: TargetImage, name: target },
+    { icon: EquipmentImage, name: equipment },
   ];
 
   return (
     <Stack gap="60px" sx={{ flexDirection: { lg: 'row' }, p: '20px', alignItems: 'center' }}>
-      <img src={`https://exercisedb.p.rapidapi.com/image?exerciseId=${exerciseDetail.id}&resolution=360&rapidapi-key=${process.env.REACT_APP_RAPID_API_KEY}`} alt={name} loading="lazy" className="detail-image" />
+      <img
+        src={gifSrc}
+        alt={name}
+        loading="lazy"
+        className="detail-image"
+        onError={(e) => { e.target.onerror = null; e.target.src = fallback; }}
+      />
       <Stack sx={{ gap: { lg: '35px', xs: '20px' } }}>
         <Typography sx={{ fontSize: { lg: '64px', xs: '30px' } }} fontWeight={700} textTransform="capitalize">
           {name}
         </Typography>
         <Typography sx={{ fontSize: { lg: '24px', xs: '18px' } }} color="#4F4C4C">
           Exercises keep you strong.{' '}
-          <span style={{ textTransform: 'capitalize' }}>{name}</span> bup is one
+          <span style={{ textTransform: 'capitalize' }}>{name}</span> is one
           of the best <br /> exercises to target your {target}. It will help you improve your{' '}
           <br /> mood and gain energy.
         </Typography>

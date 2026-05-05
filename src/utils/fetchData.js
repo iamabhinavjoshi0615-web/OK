@@ -1,11 +1,7 @@
-export const exerciseOptions = {
-  method: 'GET',
-  headers: {
-    'X-RapidAPI-Host': 'exercisedb.p.rapidapi.com',
-    'X-RapidAPI-Key': process.env.REACT_APP_RAPID_API_KEY,
-  },
-};
+// Free ExerciseDB API — no key required
+export const EXERCISE_DB_URL = 'https://exercisedb.dev/api/v1';
 
+// YouTube search via RapidAPI (still needs a key)
 export const youtubeOptions = {
   method: 'GET',
   headers: {
@@ -14,17 +10,25 @@ export const youtubeOptions = {
   },
 };
 
-export const fetchData = async (url, options) => {
-  const res = await fetch(url, options);
+/**
+ * Generic fetch helper.
+ * Returns the parsed JSON on success, or null on any network / HTTP error.
+ */
+export const fetchData = async (url, options = {}) => {
+  try {
+    const res = await fetch(url, options);
 
-  if (!res.ok) {
+    if (!res.ok) {
+      // eslint-disable-next-line no-console
+      console.warn(`API error ${res.status} for ${url}`);
+      return null;
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (err) {
     // eslint-disable-next-line no-console
-    console.warn(`API error ${res.status} for ${url}`);
+    console.warn('Network error:', err.message);
     return null;
   }
-
-  const data = await res.json();
-
-  // Some RapidAPI error payloads come back as objects, not arrays
-  return Array.isArray(data) ? data : null;
 };

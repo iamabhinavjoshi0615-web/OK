@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, Stack, TextField, Typography } from '@mui/material';
+import { Box, Stack, TextField, Button, Typography } from '@mui/material';
 
-import { exerciseOptions, fetchData } from '../utils/fetchData';
+import { EXERCISE_DB_URL, fetchData } from '../utils/fetchData';
 import HorizontalScrollbar from './HorizontalScrollbar';
 
 const SearchExercises = ({ setExercises, bodyPart, setBodyPart }) => {
@@ -10,9 +10,10 @@ const SearchExercises = ({ setExercises, bodyPart, setBodyPart }) => {
 
   useEffect(() => {
     const fetchExercisesData = async () => {
-      const bodyPartsData = await fetchData('https://exercisedb.p.rapidapi.com/exercises/bodyPartList', exerciseOptions);
-
-      setBodyParts(['all', ...(Array.isArray(bodyPartsData) ? bodyPartsData : [])]);
+      // exercisedb.dev returns { success, data: [...] }
+      const result = await fetchData(`${EXERCISE_DB_URL}/muscles`);
+      const bodyPartsData = Array.isArray(result?.data) ? result.data.map((m) => m.name) : [];
+      setBodyParts(['all', ...bodyPartsData]);
     };
 
     fetchExercisesData();
@@ -20,19 +21,17 @@ const SearchExercises = ({ setExercises, bodyPart, setBodyPart }) => {
 
   const handleSearch = async () => {
     if (search) {
-      const exercisesData = await fetchData('https://exercisedb.p.rapidapi.com/exercises', exerciseOptions);
+      const result = await fetchData(`${EXERCISE_DB_URL}/exercises?limit=500`);
+      const all = Array.isArray(result?.data) ? result.data : [];
 
-      if (!Array.isArray(exercisesData)) return;
-
-      const searchedExercises = exercisesData.filter(
-        (item) => item.name.toLowerCase().includes(search)
-               || item.target.toLowerCase().includes(search)
-               || item.equipment.toLowerCase().includes(search)
-               || item.bodyPart.toLowerCase().includes(search),
+      const searchedExercises = all.filter(
+        (item) => item.name?.toLowerCase().includes(search)
+               || item.target?.toLowerCase().includes(search)
+               || item.equipment?.toLowerCase().includes(search)
+               || item.bodyPart?.toLowerCase().includes(search),
       );
 
       window.scrollTo({ top: 1800, left: 100, behavior: 'smooth' });
-
       setSearch('');
       setExercises(searchedExercises);
     }
@@ -52,7 +51,11 @@ const SearchExercises = ({ setExercises, bodyPart, setBodyPart }) => {
           placeholder="Search Exercises"
           type="text"
         />
-        <Button className="search-btn" sx={{ bgcolor: '#FF2625', color: '#fff', textTransform: 'none', width: { lg: '173px', xs: '80px' }, height: '56px', position: 'absolute', right: '0px', fontSize: { lg: '20px', xs: '14px' } }} onClick={handleSearch}>
+        <Button
+          className="search-btn"
+          sx={{ bgcolor: '#FF2625', color: '#fff', textTransform: 'none', width: { lg: '173px', xs: '80px' }, height: '56px', position: 'absolute', right: '0px', fontSize: { lg: '20px', xs: '14px' } }}
+          onClick={handleSearch}
+        >
           Search
         </Button>
       </Box>

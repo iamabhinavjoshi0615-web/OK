@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Box } from '@mui/material';
 
-import { exerciseOptions, fetchData, youtubeOptions } from '../utils/fetchData';
+import { EXERCISE_DB_URL, fetchData, youtubeOptions } from '../utils/fetchData';
 import Detail from '../components/Detail';
 import ExerciseVideos from '../components/ExerciseVideos';
 import SimilarExercises from '../components/SimilarExercises';
@@ -18,20 +18,33 @@ const ExerciseDetail = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     const fetchExercisesData = async () => {
-      const exerciseDbUrl = 'https://exercisedb.p.rapidapi.com';
       const youtubeSearchUrl = 'https://youtube-search-and-download.p.rapidapi.com';
 
-      const exerciseDetailData = await fetchData(`${exerciseDbUrl}/exercises/exercise/${id}`, exerciseOptions);
-      setExerciseDetail(exerciseDetailData);
+      // exercisedb.dev returns { success, data: {...} } for a single exercise
+      const exerciseResult = await fetchData(`${EXERCISE_DB_URL}/exercises/${id}`);
+      const detail = exerciseResult?.data ?? exerciseResult;
+      if (!detail?.name) return;
 
-      const exerciseVideosData = await fetchData(`${youtubeSearchUrl}/search?query=${exerciseDetailData.name} exercise`, youtubeOptions);
-      setExerciseVideos(exerciseVideosData.contents);
+      setExerciseDetail(detail);
 
-      const targetMuscleExercisesData = await fetchData(`${exerciseDbUrl}/exercises/target/${exerciseDetailData.target}`, exerciseOptions);
-      setTargetMuscleExercises(targetMuscleExercisesData);
+      // YouTube videos (still via RapidAPI)
+      const videosResult = await fetchData(
+        `${youtubeSearchUrl}/search?query=${detail.name} exercise`,
+        youtubeOptions,
+      );
+      setExerciseVideos(videosResult?.contents ?? []);
 
-      const equimentExercisesData = await fetchData(`${exerciseDbUrl}/exercises/equipment/${exerciseDetailData.equipment}`, exerciseOptions);
-      setEquipmentExercises(equimentExercisesData);
+      // Similar by target muscle
+      const targetResult = await fetchData(
+        `${EXERCISE_DB_URL}/exercises?muscle=${encodeURIComponent(detail.target ?? detail.muscles?.[0] ?? '')}&limit=20`,
+      );
+      setTargetMuscleExercises(Array.isArray(targetResult?.data) ? targetResult.data : []);
+
+      // Similar by equipment
+      const equipResult = await fetchData(
+        `${EXERCISE_DB_URL}/exercises?equipment=${encodeURIComponent(detail.equipment ?? '')}&limit=20`,
+      );
+      setEquipmentExercises(Array.isArray(equipResult?.data) ? equipResult.data : []);
     };
 
     fetchExercisesData();
