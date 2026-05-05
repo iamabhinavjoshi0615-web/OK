@@ -1,5 +1,8 @@
-// Free ExerciseDB API — no key required
-export const EXERCISE_DB_URL = 'https://exercisedb.dev/api/v1';
+// In production (Vercel) use the same-origin rewrite proxy → no CORS issues.
+// In local dev call exercisedb.dev directly (localhost is usually not blocked).
+export const EXERCISE_DB_URL = process.env.NODE_ENV === 'production'
+  ? '/exercisedb'
+  : 'https://exercisedb.dev/api/v1';
 
 // YouTube search via RapidAPI (still needs a key)
 export const youtubeOptions = {
