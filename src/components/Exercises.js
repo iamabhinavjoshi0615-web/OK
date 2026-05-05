@@ -9,10 +9,11 @@ import Loader from './Loader';
 const Exercises = ({ exercises, setExercises, bodyPart }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [exercisesPerPage] = useState(6);
+  const [apiError, setApiError] = useState(false);
 
   useEffect(() => {
     const fetchExercisesData = async () => {
-      let exercisesData = [];
+      let exercisesData = null;
 
       if (bodyPart === 'all') {
         exercisesData = await fetchData('https://exercisedb.p.rapidapi.com/exercises', exerciseOptions);
@@ -20,6 +21,13 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
         exercisesData = await fetchData(`https://exercisedb.p.rapidapi.com/exercises/bodyPart/${bodyPart}`, exerciseOptions);
       }
 
+      if (!Array.isArray(exercisesData)) {
+        setApiError(true);
+        setExercises([]);
+        return;
+      }
+
+      setApiError(false);
       setExercises(exercisesData);
     };
 
@@ -36,6 +44,18 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
 
     window.scrollTo({ top: 1800, behavior: 'smooth' });
   };
+
+  if (apiError) {
+    return (
+      <Box id="exercises" sx={{ mt: { lg: '109px' } }} mt="50px" p="20px" textAlign="center">
+        <Typography variant="h5" color="error" mb={2}>⚠️ Could not load exercises</Typography>
+        <Typography color="text.secondary">
+          The exercise API is currently unavailable (rate limit or access error).<br />
+          Please check your RapidAPI key and plan, then try again.
+        </Typography>
+      </Box>
+    );
+  }
 
   if (!currentExercises.length) return <Loader />;
 

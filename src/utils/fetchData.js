@@ -16,7 +16,15 @@ export const youtubeOptions = {
 
 export const fetchData = async (url, options) => {
   const res = await fetch(url, options);
+
+  if (!res.ok) {
+    // eslint-disable-next-line no-console
+    console.warn(`API error ${res.status} for ${url}`);
+    return null;
+  }
+
   const data = await res.json();
 
-  return data;
+  // Some RapidAPI error payloads come back as objects, not arrays
+  return Array.isArray(data) ? data : null;
 };
