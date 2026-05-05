@@ -13,24 +13,22 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
 
   useEffect(() => {
     const fetchExercisesData = async () => {
-      let result;
+      let data;
 
       if (bodyPart === 'all') {
-        result = await fetchData(`${EXERCISE_DB_URL}/exercises?limit=500`);
+        data = await fetchData(`${EXERCISE_DB_URL}/exercises?limit=1300`);
       } else {
-        result = await fetchData(`${EXERCISE_DB_URL}/exercises?muscle=${encodeURIComponent(bodyPart)}&limit=500`);
+        data = await fetchData(`${EXERCISE_DB_URL}/exercises/bodyPart/${bodyPart}`);
       }
 
-      const exercisesData = Array.isArray(result?.data) ? result.data : null;
-
-      if (!exercisesData) {
+      if (!Array.isArray(data)) {
         setApiError(true);
         setExercises([]);
         return;
       }
 
       setApiError(false);
-      setExercises(exercisesData);
+      setExercises(data);
     };
 
     fetchExercisesData();
@@ -38,7 +36,9 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
 
   const indexOfLastExercise = currentPage * exercisesPerPage;
   const indexOfFirstExercise = indexOfLastExercise - exercisesPerPage;
-  const currentExercises = Array.isArray(exercises) ? exercises.slice(indexOfFirstExercise, indexOfLastExercise) : [];
+  const currentExercises = Array.isArray(exercises)
+    ? exercises.slice(indexOfFirstExercise, indexOfLastExercise)
+    : [];
 
   const paginate = (event, value) => {
     setCurrentPage(value);
@@ -50,8 +50,7 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
       <Box id="exercises" sx={{ mt: { lg: '109px' } }} mt="50px" p="20px" textAlign="center">
         <Typography variant="h5" color="error" mb={2}>⚠️ Could not load exercises</Typography>
         <Typography color="text.secondary">
-          The exercise data is currently unavailable.<br />
-          Please try again later.
+          The exercise API is currently unavailable. Please try again later.
         </Typography>
       </Box>
     );
@@ -61,7 +60,9 @@ const Exercises = ({ exercises, setExercises, bodyPart }) => {
 
   return (
     <Box id="exercises" sx={{ mt: { lg: '109px' } }} mt="50px" p="20px">
-      <Typography variant="h4" fontWeight="bold" sx={{ fontSize: { lg: '44px', xs: '30px' } }} mb="46px">Showing Results</Typography>
+      <Typography variant="h4" fontWeight="bold" sx={{ fontSize: { lg: '44px', xs: '30px' } }} mb="46px">
+        Showing Results
+      </Typography>
       <Stack direction="row" sx={{ gap: { lg: '107px', xs: '50px' } }} flexWrap="wrap" justifyContent="center">
         {currentExercises.map((exercise, idx) => (
           <ExerciseCard key={idx} exercise={exercise} />

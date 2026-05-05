@@ -1,20 +1,33 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Button, Stack, TextField, Typography } from '@mui/material';
-import allExercises, { bodyParts } from '../data/exercises';
+
+import { EXERCISE_DB_URL, fetchData } from '../utils/fetchData';
 import HorizontalScrollbar from './HorizontalScrollbar';
 
 const SearchExercises = ({ setExercises, bodyPart, setBodyPart }) => {
   const [search, setSearch] = useState('');
+  const [bodyParts, setBodyParts] = useState([]);
 
-  // Body parts are derived from local data — no API needed
-  const handleSearch = () => {
+  useEffect(() => {
+    const fetchBodyParts = async () => {
+      const data = await fetchData(`${EXERCISE_DB_URL}/exercises/bodyPartList`);
+      setBodyParts(['all', ...(Array.isArray(data) ? data : [])]);
+    };
+    fetchBodyParts();
+  }, []);
+
+  const handleSearch = async () => {
     if (search) {
-      const results = allExercises.filter(
-        (item) => item.name.toLowerCase().includes(search)
-               || item.target.toLowerCase().includes(search)
-               || item.equipment.toLowerCase().includes(search)
-               || item.bodyPart.toLowerCase().includes(search),
+      const data = await fetchData(`${EXERCISE_DB_URL}/exercises?limit=1300`);
+      if (!Array.isArray(data)) return;
+
+      const results = data.filter(
+        (item) => item.name?.toLowerCase().includes(search)
+               || item.target?.toLowerCase().includes(search)
+               || item.equipment?.toLowerCase().includes(search)
+               || item.bodyPart?.toLowerCase().includes(search),
       );
+
       window.scrollTo({ top: 1800, left: 100, behavior: 'smooth' });
       setSearch('');
       setExercises(results);
